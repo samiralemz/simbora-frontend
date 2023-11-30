@@ -419,7 +419,7 @@
         localStorage.setItem('email', response.user.email);
         localStorage.setItem('senha', '');
         localStorage.setItem('AccessLevel', "cliente");
-        
+
         localStorage.setItem('imagem', `https://firebasestorage.googleapis.com/v0/b/simboraauth-b71d1.appspot.com/o/${response.user.uid}%2Fprofile?alt=media&token=4eb59fc8-8ddc-47d4-9048-cb4a92ffb0c8`);
         localStorage.setItem('cpf_cnpj', '');
         localStorage.setItem('telefone', '');
@@ -516,32 +516,31 @@
       var email = document.getElementById('emailCadastro').value;
       var senha = document.getElementById('senhaCadastro').value;
       var nome = document.getElementById('nomeCadastro').value;
-      // var nome = document.getElementById('nomeCadastro').value;
 
 
       if (email !== null && senha !== null && nome !== null) {
 
-        axios.post('http://localhost:3000/api/users', {
-          nome: nome,
-          email: email,
-          senha: senha,
-        })
-          .then(function (response) {
-            localStorage.setItem('id', response.data._id);
-            localStorage.setItem('nome', response.data.nome);
-            localStorage.setItem('email', response.data.email);
-            localStorage.setItem('senha', response.data.senha);
-            localStorage.setItem('AccessLevel', response.data.AccessLevel);
-            localStorage.setItem('imagem', response.data.imagem !== null ? 'http://localhost:3000/uploads/' + response.data.imagem : 'https://digimedia.web.ua.pt/wp-content/uploads/2017/05/default-user-image.png');
-            localStorage.setItem('cpf_cnpj', response.data.cpf_cnpj);
-            localStorage.setItem('telefone', response.data.telefone);
-
-            window.location.href = "/pages/logged/Index.html"
+        firebase.auth().createUserWithEmailAndPassword(
+          email, senha
+        ).then(response => {
+          response.user.updateProfile({
+            displayName: nome
+          }).then(() => {
+            localStorage.setItem('id', response.user.uid);
+            localStorage.setItem('nome', response.user.displayName);
+            localStorage.setItem('email', response.user.email);
+            localStorage.setItem('senha', '');
+            localStorage.setItem('AccessLevel', "cliente");
+            localStorage.setItem('imagem', `https://firebasestorage.googleapis.com/v0/b/simboraauth-b71d1.appspot.com/o/${response.user.uid}%2Fprofile?alt=media&token=4eb59fc8-8ddc-47d4-9048-cb4a92ffb0c8`);
+            localStorage.setItem('cpf_cnpj', '');
+            localStorage.setItem('telefone', '');
+            // redireciona para esse endereço
+            window.location.href = "/pages/logged/index.html"
           })
-          .catch(function (error) {
-            console.error(error);
-            exibirAlertDialog(error.response.data.error);
-          });
+        }).catch(error => {
+          exibirAlertDialog(error.response.data.error);
+        });
+
       }
     }
 
