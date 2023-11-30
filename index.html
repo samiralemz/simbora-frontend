@@ -409,43 +409,72 @@
       var email = document.getElementById('email').value;
       var senha = document.getElementById('senha').value;
 
-      //requisição
-      axios.post('http://localhost:3000/api/auth/login', {
-        email: email,
-        senha: senha
-      })
-        //apos a requisição dá certo, vamos setar os dados que vinheram na resposta da requisição
-        .then(function (response) {
-          //guarda tudo no localStorage(Cache)
-          localStorage.setItem('id', response.data._id);
-          localStorage.setItem('nome', response.data.nome);
-          localStorage.setItem('email', response.data.email);
-          localStorage.setItem('senha', response.data.senha);
-          localStorage.setItem('AccessLevel', response.data.AccessLevel);
-          localStorage.setItem('imagem', response.data.imagem !== null ? 'http://localhost:3000/uploads/' + response.data.imagem : 'https://digimedia.web.ua.pt/wp-content/uploads/2017/05/default-user-image.png');
-          localStorage.setItem('cpf_cnpj', response.data.cpf_cnpj);
-          localStorage.setItem('telefone', response.data.telefone);
-          // redireciona para esse endereço
-          window.location.href = "/pages/logged/Index.html"
-        })
-        .catch(function (error) {
-          console.error(error);
-          // no caso de erro o sistema vai cair nesse catch 
-          if (error.response.status === 404) {
-            // Caso o codigo do erro for 404(não encontrado) irei mudar a cor da borda da div em que a input está
-            document.getElementById('emailInput').classList.add('input-field-error');
-            document.getElementById('passwordInput').classList.remove('input-field-error');
-            // a função exibirAlertDialog vai habilitar uma caixa de mensagem para alertar que deu erro e apresentar a mensagem que o backend retornou
-            // a função espera um parametro que é a mensagem, nesse caso o caminho para achar a mensagem de erro é error.response.data.message
-            exibirAlertDialog(error.response.data.message);
-          } else if (error.response.status === 401) {
-            exibirAlertDialog(error.response.data.message);
-            document.getElementById('passwordInput').classList.add('input-field-error');
-            document.getElementById('emailInput').classList.remove('input-field-error');
-          } else {
-            exibirAlertDialog(error.response.data.error);
-          }
-        });
+
+      firebase.auth().signInWithEmailAndPassword(
+        email, senha
+      ).then(response => {
+
+        localStorage.setItem('id', response.user.uid);
+        localStorage.setItem('nome', response.user.displayName);
+        localStorage.setItem('email', response.user.email);
+        localStorage.setItem('senha', '');
+        localStorage.setItem('AccessLevel', "cliente");
+        
+        localStorage.setItem('imagem', `https://firebasestorage.googleapis.com/v0/b/simboraauth-b71d1.appspot.com/o/${response.user.uid}%2Fprofile?alt=media&token=4eb59fc8-8ddc-47d4-9048-cb4a92ffb0c8`);
+        localStorage.setItem('cpf_cnpj', '');
+        localStorage.setItem('telefone', '');
+        // redireciona para esse endereço
+        window.location.href = "/pages/logged/Index.html"
+
+      }).catch(error => {
+        exibirAlertDialog("Login ou senha incorretos");
+        document.getElementById('emailInput').classList.add('input-field-error');
+        document.getElementById('passwordInput').classList.add('input-field-error');
+
+      });
+
+
+      // requisição
+      // axios.post('http://localhost:3000/api/auth/login', {
+      //   email: email,
+      //   senha: senha
+      // })
+      //   //apos a requisição dá certo, vamos setar os dados que vinheram na resposta da requisição
+      //   .then(function (response) {
+      //     //guarda tudo no localStorage(Cache)
+      //     localStorage.setItem('id', response.data._id);
+      //     localStorage.setItem('nome', response.data.nome);
+      //     localStorage.setItem('email', response.data.email);
+      //     localStorage.setItem('senha', response.data.senha);
+      //     localStorage.setItem('AccessLevel', response.data.AccessLevel);
+      //     localStorage.setItem('imagem', response.data.imagem !== null ? 'http://localhost:3000/uploads/' + response.data.imagem : 'https://digimedia.web.ua.pt/wp-content/uploads/2017/05/default-user-image.png');
+      //     localStorage.setItem('cpf_cnpj', response.data.cpf_cnpj);
+      //     localStorage.setItem('telefone', response.data.telefone);
+      //     // redireciona para esse endereço
+      //     window.location.href = "/pages/logged/Index.html"
+      //   })
+      //   .catch(function (error) {
+      //     console.error(error);
+      //     // no caso de erro o sistema vai cair nesse catch 
+      //     if (error.response.status === 404) {
+      //       // Caso o codigo do erro for 404(não encontrado) irei mudar a cor da borda da div em que a input está
+      //       document.getElementById('emailInput').classList.add('input-field-error');
+      //       document.getElementById('passwordInput').classList.remove('input-field-error');
+      //       // a função exibirAlertDialog vai habilitar uma caixa de mensagem para alertar que deu erro e apresentar a mensagem que o backend retornou
+      //       // a função espera um parametro que é a mensagem, nesse caso o caminho para achar a mensagem de erro é error.response.data.message
+      //       exibirAlertDialog(error.response.data.message);
+      //     } else if (error.response.status === 401) {
+      //       exibirAlertDialog(error.response.data.message);
+      //       document.getElementById('passwordInput').classList.add('input-field-error');
+      //       document.getElementById('emailInput').classList.remove('input-field-error');
+      //     } else {
+      //       exibirAlertDialog(error.response.data.error);
+      //     }
+      //   });
+
+
+
+
     }
 
     function loginProdutor() {
@@ -871,9 +900,12 @@
         });
     }
 
+
+
     window.addEventListener('load', getAutocomplete);
 
   </script>
+
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="assets/vendor/glightbox/js/glightbox.min.js"></script>
   <script src="assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
@@ -883,6 +915,20 @@
   <script src="assets/js/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/assets/js/main.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAfKvY7fKEimF0xyCSdaoLTv-g-SnpzhSg",
+      authDomain: "simboraauth-b71d1.firebaseapp.com",
+      projectId: "simboraauth-b71d1",
+      storageBucket: "simboraauth-b71d1.appspot.com",
+      messagingSenderId: "920532064487",
+      appId: "1:920532064487:web:81094042f1a046318a2a42"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </body>
 
 </html>
